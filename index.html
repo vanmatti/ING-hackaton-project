@@ -5,55 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Project</title>
     <style>
-        /* CSS voor de 'mooie' stijl */
         body, html {
             height: 100%;
             margin: 0;
             font-family: Arial, sans-serif;
             display: grid;
-            place-items: center; /* Hiermee centreren we alles perfect */
-            background-color: #f0f2f5; /* Lichte achtergrondkleur */
+            place-items: center;
+            background-color: #f0f2f5;
         }
 
+        /* --- DEZE CSS IS AANGEPAST --- */
         .container {
-            text-align: center;
-            background-color: #ffffff; /* Witte kaart als achtergrond */
+            /* text-align: center;  <-- DEZE VERVANGEN WE */
+            background-color: #ffffff;
             padding: 50px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            
+            /* DIT ZIJN DE NIEUWE REGELS */
+            display: flex;
+            flex-direction: column; /* Stapel alles verticaal */
+            align-items: center;   /* Centreer alles horizontaal */
         }
 
-        /* Het 'logo' - de afbeelding */
         .logo {
-            max-height: 70px; /* Bepaalt de maximale hoogte */
-            width: auto;      /* Zorgt dat de verhouding goed blijft */
+            max-height: 70px;
+            width: auto;
             margin-bottom: 30px;
         }
 
-        /* De grote oranje knop */
         #recordButton {
-            background-color: #ff6200; /* ING Oranje */
-            color: white; /* Witte tekst */
+            background-color: #ff6200;
+            color: white;
             border: none;
-            padding: 20px 40px; /* Maakt de knop groot */
+            padding: 20px 40px;
             font-size: 24px;
             font-weight: bold;
-            border-radius: 50px; /* Maakt het een 'pil' vorm */
+            border-radius: 50px;
             cursor: pointer;
-            transition: background-color 0.3s ease; /* Nette hover-effect */
+            transition: background-color 0.3s ease;
         }
 
-        /* Effect als je er met de muis overheen gaat */
         #recordButton:hover {
-            background-color: #e65a00; /* Iets donkerder oranje */
+            background-color: #e65a00;
         }
-
-        /* Dit is een placeholder voor de status (bv. "Luisteren...") */
+        
         #status {
             margin-top: 25px;
             font-size: 18px;
             color: #555;
-            height: 25px; /* Zorgt dat de layout niet verspringt */
+            height: 25px;
         }
 
     </style>
@@ -70,9 +71,14 @@
 
         <div id="status">Druk op de knop om te beginnen</div>
     </div>
+
+</body>
+</html>
+    </div>
      <script src="stt.js"></script>
 </body>
 </html>
+
 
 
 
