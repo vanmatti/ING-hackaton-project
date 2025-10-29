@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioChunks = [];
     
     // !!! BELANGRIJK: Dit is de veilige URL naar jouw eigen backend (Cloud Function)
+    // *** REPARATIE 1: Aanhalingstekens toegevoegd ***
     const BACKEND_URL = 'https://backend-171838792637.europe-west1.run.app';
 
 
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Stuur opname naar backend voor transcriptie
                         sendToGoogleAPI(base64Audio, languageSelect.value);
                     };
-        }); //
+                }); // <-- *** REPARATIE 2: De ontbrekende '});' staat hier ***
 
                 // Start browser speech recognition (live transcript) if available
                 startBrowserRecognition();
@@ -82,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Ensure custom select width matches button width
                 syncControlWidths();
 
-           catch(error => {
+            } catch (err) { // <-- *** REPARATIE 3: De 'catch'-syntax is hier correct ***
                 console.error('Fout bij ophalen microfoon:', err);
                 statusText.textContent = 'Fout: Microfoon niet toegestaan.';
             }
@@ -104,9 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Sync widths so button and custom select match and button adapts to text ---
     function syncControlWidths() {
-        // No width sync needed anymore — keep the mic button circular and the language
-        // selector compact under the transcript. This function left as a noop for
-        // backwards compatibility with previous calls.
+        // No width sync needed anymore
         return;
     }
 
@@ -265,69 +264,70 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-  // 4. Functie: API-aanroep (NU NAAR ONZE EIGEN SLIMME BACKEND)
-    async function sendToGoogleAPI(base64Audio, languageCode) {
+    // 4. Functie: API-aanroep (NU NAAR ONZE EIGEN SLIMME BACKEND)
+    // *** REPARATIE 4: Dit is het 'terugpraat'-blok dat je wilde ***
+    async function sendToGoogleAPI(base64Audio, languageCode) {
 
-        const API_URL = BACKEND_URL; 
-        const requestBody = {
-            audioData: base64Audio,
-            lang: languageCode || 'nl-NL'
-        };
+        const API_URL = BACKEND_URL; 
+        const requestBody = {
+            audioData: base64Audio,
+            lang: languageCode || 'nl-NL'
+        };
 
-        try {
-            statusText.textContent = 'Even denken...'; // Update status
-            
-            // We gebruiken een timeout voor het geval de backend (LLM) lang duurt
-            const controller = new AbortController();
-            const timeout = 25000; // 25 seconden
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
+        try {
+            statusText.textContent = 'Even denken...'; // Update status
+            
+            // We gebruiken een timeout voor het geval de backend (LLM) lang duurt
+            const controller = new AbortController();
+            const timeout = 25000; // 25 seconden
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody),
-                signal: controller.signal // Koppel de timeout
-            });
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody),
+                signal: controller.signal // Koppel de timeout
+            });
 
-            clearTimeout(timeoutId); // Stop de timeout, we hebben antwoord
+            clearTimeout(timeoutId); // Stop de timeout, we hebben antwoord
 
-            if (!response.ok) {
-                const text = await response.text();
-                console.error('Backend response error', response.status, text);
-                statusText.textContent = 'Fout bij transcriptie (Backend).';
-            	  return;
-          	}
+            if (!response.ok) {
+                const text = await response.text();
+                console.error('Backend response error', response.status, text);
+                statusText.textContent = 'Fout bij transcriptie (Backend).';
+                return;
+            }
 
-    	  	const data = await response.json();
+            const data = await response.json();
 
-    	  	// *** DIT IS DE NIEUWE LOGICA ***
-    	  	// We krijgen nu een 'audioResponse' terug
-    	  	if (data.audioResponse) {
-    		  		statusText.textContent = 'Antwoord wordt afgespeeld...';
-                
-              	// Maak een nieuw Audio-object en speel het af
-              	const audio = new Audio(data.audioResponse);
-              	audio.play();
-                
-              	// Zet de status terug als het afspelen klaar is
-              	audio.onended = () => {
-              	  	statusText.textContent = 'Wacht op commando...';
-              	};
-                
-        	} else {
-              	// Dit vangt de { transcript: null } op als je niks zei
-              	statusText.textContent = 'Kon je niet verstaan. Probeer opnieuw.';
-        	}
+            // *** DIT IS DE NIEUWE LOGICA ***
+            // We krijgen nu een 'audioResponse' terug
+            if (data.audioResponse) {
+                statusText.textContent = 'Antwoord wordt afgespeeld...';
+                
+                // Maak een nieuw Audio-object en speel het af
+                const audio = new Audio(data.audioResponse);
+                audio.play();
+                
+                // Zet de status terug als het afspelen klaar is
+                audio.onended = () => {
+                    statusText.textContent = 'Wacht op commando...';
+                };
+                
+            } else {
+                // Dit vangt de { transcript: null } op als je niks zei
+                statusText.textContent = 'Kon je niet verstaan. Probeer opnieuw.';
+            }
 
-    	} catch (error) {
-    	  	console.error('Fout bij het aanroepen van de Backend:', error);
-        	if (error.name === 'AbortError') {
-        		statusText.textContent = 'Timeout: de backend deed er te lang over.';
-      	  } else {
-        		statusText.textContent = 'Fout bij verbinding met backend.';
-      	  }
-  	}
-  }
+        } catch (error) {
+            console.error('Fout bij het aanroepen van de Backend:', error);
+            if (error.name === 'AbortError') {
+                statusText.textContent = 'Timeout: de backend deed er te lang over.';
+            } else {
+                statusText.textContent = 'Fout bij verbinding met backend.';
+            }
+        }
+    }
 
     // --- Debug helper: test backend connectivity and show full response ---
     const testBtn = document.getElementById('testBackendBtn');
@@ -405,9 +405,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 });
-
-
-
-
-
-
