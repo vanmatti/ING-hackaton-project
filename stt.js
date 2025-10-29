@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // !!! BELANGRIJK: Plak hier je API-sleutel !!!
     // NOOIT DEZE SLEUTEL PUBLIEK OP GITHUB ZETTEN!
-    const GOOGLE_API_KEY = 'JOUW_API_SLEUTEL_HIER';
+    const GOOGLE_API_KEY = 'AIzaSyDJcpbWFHrNLme3IYay9HuLHMxoUSMeoc8';
 
 
     // 3. Koppel de 'click'-functie aan de knop
@@ -121,3 +121,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 });
+
