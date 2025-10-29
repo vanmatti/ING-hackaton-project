@@ -265,90 +265,69 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-    // 4. Functie: API-aanroep naar onze backend (Cloud Function)
-    async function sendToGoogleAPI(base64Audio, languageCode) {
-        const API_URL = BACKEND_URL;
+  // 4. Functie: API-aanroep (NU NAAR ONZE EIGEN SLIMME BACKEND)
+    async function sendToGoogleAPI(base64Audio, languageCode) {
 
-        // Quick guard: remind developer to set the real backend URL instead of the placeholder
-        if (!API_URL || API_URL.includes('jouw-cloud-function')) {
-            console.warn('BACKEND_URL is niet ingesteld (placeholder gebruikt). Vervang BACKEND_URL in stt.js met je echte endpoint.');
-            statusText.textContent = 'Fout: Backend-URL niet ingesteld. Vul BACKEND_URL in stt.js in.';
-            return;
-        }
+        const API_URL = BACKEND_URL; 
+        const requestBody = {
+            audioData: base64Audio,
+            lang: languageCode || 'nl-NL'
+        };
 
-        const requestBody = {
-            audioData: base64Audio,
-            lang: languageCode || 'nl-NL'
-        };
+        try {
+            statusText.textContent = 'Even denken...'; // Update status
+            
+            // We gebruiken een timeout voor het geval de backend (LLM) lang duurt
+            const controller = new AbortController();
+            const timeout = 25000; // 25 seconden
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-        // Use an AbortController to avoid hanging forever
-        const controller = new AbortController();
-        const timeout = 25000; // 25s
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody),
+                signal: controller.signal // Koppel de timeout
+            });
 
-        try {
-            console.log('Verstuur opname naar backend:', API_URL, 'lang=', requestBody.lang);
-            statusText.textContent = 'Versturen naar backend...';
+            clearTimeout(timeoutId); // Stop de timeout, we hebben antwoord
 
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody),
-                signal: controller.signal
-            });
+            if (!response.ok) {
+                const text = await response.text();
+                console.error('Backend response error', response.status, text);
+                statusText.textContent = 'Fout bij transcriptie (Backend).';
+            	  return;
+          	}
 
-            clearTimeout(timeoutId);
+    	  	const data = await response.json();
 
-            if (!response.ok) {
-                // Try to read JSON or text for helpful debug info
-                let bodyText = '';
-                try {
-                    bodyText = await response.text();
-                } catch (e) {
-                    bodyText = '<kon response body niet lezen>';
-                }
-                console.error('Backend response error', response.status, bodyText);
-                statusText.textContent = `Backend fout: ${response.status}. Controleer CORS en logs.`;
-                return;
-            }
+    	  	// *** DIT IS DE NIEUWE LOGICA ***
+    	  	// We krijgen nu een 'audioResponse' terug
+    	  	if (data.audioResponse) {
+    		  		statusText.textContent = 'Antwoord wordt afgespeeld...';
+                
+              	// Maak een nieuw Audio-object en speel het af
+              	const audio = new Audio(data.audioResponse);
+              	audio.play();
+                
+              	// Zet de status terug als het afspelen klaar is
+              	audio.onended = () => {
+              	  	statusText.textContent = 'Wacht op commando...';
+              	};
+                
+        	} else {
+              	// Dit vangt de { transcript: null } op als je niks zei
+              	statusText.textContent = 'Kon je niet verstaan. Probeer opnieuw.';
+        	}
 
-            // Attempt to parse JSON; if that fails, show the raw text
-            let data;
-            try {
-                data = await response.json();
-            } catch (e) {
-                const raw = await response.text();
-                console.warn('Backend returned non-JSON response:', raw);
-                statusText.textContent = 'Backend retourneerde geen JSON. Bekijk console.';
-                console.log('Raw backend response:', raw);
-                return;
-            }
-
-            // Verwacht { transcript: '...' }
-            if (data && data.transcript) {
-                statusText.textContent = `Jij zei: "${data.transcript}"`;
-            } else {
-                statusText.textContent = 'Kon je niet verstaan. Probeer opnieuw.';
-                console.log('Geen transcriptie gevonden in backend-antwoord:', data);
-            }
-
-        } catch (error) {
-            clearTimeout(timeoutId);
-            console.error('Fout bij het aanroepen van de Backend:', error);
-
-            // Differentiate abort (timeout) vs network errors
-            if (error.name === 'AbortError') {
-                statusText.textContent = 'Timeout: backend reageert niet (controleer URL/CORS).';
-            } else if (!navigator.onLine) {
-                statusText.textContent = 'Geen internetverbinding.';
-            } else {
-                statusText.textContent = 'Fout bij verbinding met backend. Bekijk console voor details.';
-            }
-
-            // Common causes to check
-            console.info('Controleer: 1) BACKEND_URL correct en bereikbaar 2) CORS toestaat deze origin 3) HTTPS of localhost tijdens testen');
-        }
-    }
+    	} catch (error) {
+    	  	console.error('Fout bij het aanroepen van de Backend:', error);
+        	if (error.name === 'AbortError') {
+        		statusText.textContent = 'Timeout: de backend deed er te lang over.';
+      	  } else {
+        		statusText.textContent = 'Fout bij verbinding met backend.';
+      	  }
+  	}
+  }
 
     // --- Debug helper: test backend connectivity and show full response ---
     const testBtn = document.getElementById('testBackendBtn');
@@ -426,6 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 });
+
 
 
 
