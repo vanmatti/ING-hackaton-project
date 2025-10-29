@@ -16,9 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let mediaRecorder;
     let audioChunks = [];
     
-    // !!! BELANGRIJK: Plak hier je API-sleutel als je automatische transcriptie wilt
-    // NOOIT DEZE SLEUTEL PUBLIEK OP GITHUB ZETTEN!
-    const GOOGLE_API_KEY = 
+  // !!! BELANGRIJK: Dit is de veilige URL naar jouw eigen backend (Cloud Function)
+const BACKEND_URL = 'https://jouw-cloud-function-url.run.app';
 
 
     // 3. Koppel de 'click'-functie aan de knop
@@ -272,49 +271,48 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-    // 4. Functie: API-aanroep (Google Speech-to-Text)
-    async function sendToGoogleAPI(base64Audio, languageCode) {
-        const API_URL = `https://speech.googleapis.com/v1/speech:recognize?key=${GOOGLE_API_KEY}`;
+    // 4. Functie: API-aanroep (NU NAAR ONZE EIGEN VEILIGE BACKEND)
+async function sendToGoogleAPI(base64Audio, languageCode) {
 
-        const requestBody = {
-            config: {
-                encoding: 'WEBM_OPUS',
-                sampleRateHertz: 48000,
-                languageCode: languageCode || 'nl-NL'
-            },
-            audio: {
-                content: base64Audio
-            }
-        };
+    // We sturen de data nu naar onze EIGEN backend, niet meer direct naar Google
+    const API_URL = BACKEND_URL; 
 
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
-            });
+    // We sturen de audio en de taal als JSON
+    const requestBody = {
+        audioData: base64Audio,
+        lang: languageCode || 'nl-NL'
+    };
 
-            if (!response.ok) {
-                const text = await response.text();
-                console.error('API response error', response.status, text);
-                statusText.textContent = 'Fout bij transcriptie (API).';
-                return;
-            }
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
 
-            const data = await response.json();
-            if (data.results && data.results.length > 0) {
-                const transcript = data.results[0].alternatives[0].transcript;
-                statusText.textContent = `Jij zei: "${transcript}"`;
-            } else {
-                statusText.textContent = 'Kon je niet verstaan. Probeer opnieuw.';
-                console.log('Geen transcriptie gevonden in API-antwoord:', data);
-            }
-
-        } catch (error) {
-            console.error('Fout bij het aanroepen van de Google API:', error);
-            statusText.textContent = 'Fout bij verbinding met API.';
+        if (!response.ok) {
+            const text = await response.text();
+            console.error('Backend response error', response.status, text);
+            statusText.textContent = 'Fout bij transcriptie (Backend).';
+            return;
         }
+
+        const data = await response.json();
+
+        // Onze backend stuurt een simpel { transcript: "..." } object terug
+        if (data.transcript) {
+            statusText.textContent = `Jij zei: "${data.transcript}"`;
+        } else {
+            statusText.textContent = 'Kon je niet verstaan. Probeer opnieuw.';
+            console.log('Geen transcriptie gevonden in backend-antwoord:', data);
+        }
+
+    } catch (error) {
+        console.error('Fout bij het aanroepen van de Backend:', error);
+        statusText.textContent = 'Fout bij verbinding met backend.';
     }
+}
 
 
 });
+
