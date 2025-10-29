@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioChunks = [];
     
   // !!! BELANGRIJK: Dit is de veilige URL naar jouw eigen backend (Cloud Function)
-const BACKEND_URL = 'https://jouw-cloud-function-url.run.app';
+const BACKEND_URL = https://backend-171838792637.europe-west1.run.app
 
 
     // 3. Koppel de 'click'-functie aan de knop
@@ -315,4 +315,5 @@ async function sendToGoogleAPI(base64Audio, languageCode) {
 
 
 });
+
 
