@@ -15,7 +15,7 @@
         }
 
         /* --- DEZE CSS IS AANGEPAST --- */
-        .container {
+    .container {
             /* text-align: center;  <-- DEZE VERVANGEN WE */
             background-color: #ffffff;
             padding: 50px;
@@ -26,8 +26,9 @@
             display: flex;
             flex-direction: column; /* Stapel alles verticaal */
             align-items: center;   /* Centreer alles horizontaal */
-            /* Fixed width so layout doesn't change */
-            width: 640px;
+            /* Responsive: allow the container to shrink on small screens */
+            width: 95vw;
+            max-width: 640px;
             box-sizing: border-box;
         }
 
@@ -55,7 +56,7 @@
         }
 
         :root{
-            --control-width: 320px;
+            --control-width: min(320px, 90%);
         }
 
         .controls {
@@ -79,7 +80,8 @@
 
         /* Transcript box styling */
         #transcript {
-            width: 520px;
+            width: 100%;
+            max-width: 520px;
             height: 140px;
             margin-top: 8px;
             padding: 14px;
@@ -96,14 +98,15 @@
         }
 
         /* Custom select visuals */
-        .custom-select {
+    .custom-select {
             background: #f0f2f5;
             color: #333;
             border-radius: 25px;
             padding: 8px 16px;
             font-size: 14px;
             font-weight: 600;
-            width: 160px; /* fixed width */
+            width: 160px; /* preferred width */
+            max-width: 48%;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -127,15 +130,16 @@
         .custom-select__label { text-align:center; }
         .custom-select__arrow { opacity:0.9 }
 
-        .custom-select__list {
+    .custom-select__list {
             position: absolute;
             top: calc(100% + 8px);
             left: 50%;
             transform: translateX(-50%) translateY(-6px);
             background: white;
             color: #111827;
-            min-width: 160px;
+            min-width: 140px;
             width: 160px;
+            max-width: 80vw;
             padding: 8px 6px;
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(2,6,23,0.08);
@@ -148,6 +152,26 @@
             max-height: 0;
             overflow: hidden;
             z-index: 40;
+        }
+
+        /* Responsive tweaks for smaller screens */
+        @media (max-width: 520px) {
+            #recordButton { width: 80px; height: 80px; }
+            #recordButton::before, #recordButton::after { width: 80px; height: 80px; }
+            #transcript { height: 110px; padding: 10px; }
+            .container { padding: 28px; }
+            .custom-select { width: 140px; }
+            .logo { max-height: 56px; }
+            #status { font-size: 15px; }
+        }
+
+        @media (max-width: 360px) {
+            .container { padding: 18px; }
+            #recordButton { width: 72px; height: 72px; }
+            #recordButton::before, #recordButton::after { width: 72px; height: 72px; }
+            #transcript { height: 100px; font-size: 14px; }
+            .custom-select { width: 120px; }
+            .logo { max-height: 48px; }
         }
 
         .custom-select.open .custom-select__list {
@@ -284,7 +308,7 @@
         <audio id="audio" style="display:none"></audio>
 
     <!-- Transcriptie vak: hier verschijnt de live-tekst -->
-    <div style="display:flex;flex-direction:column;align-items:center; width:520px;">
+    <div style="display:flex;flex-direction:column;align-items:center; width:100%; max-width:520px;">
             <label for="transcript" style="margin-top:14px; font-weight:700; color:#333;">Transcriptie</label>
             <textarea id="transcript" readonly></textarea>
 
@@ -313,9 +337,9 @@
         <div id="status">Druk op de knop om te beginnen</div>
 
         <!-- Backend test button + debug pane -->
-        <div style="display:flex;flex-direction:column;align-items:center;margin-top:12px;gap:8px;width:520px;">
+        <div style="display:flex;flex-direction:column;align-items:center;margin-top:12px;gap:8px;width:100%;max-width:520px;">
             <button id="testBackendBtn" style="padding:8px 14px;border-radius:10px;border:1px solid #e6e6e6;background:#fff;cursor:pointer;font-weight:700;">Test backend verbinding</button>
-            <pre id="backendDebug" style="width:520px;height:120px;overflow:auto;padding:10px;background:#0f172a;color:#e6eefb;border-radius:8px;font-size:13px;display:none;margin:0;">Debug output verschijnt hier</pre>
+            <pre id="backendDebug" style="width:100%;max-width:520px;height:120px;overflow:auto;padding:10px;background:#0f172a;color:#e6eefb;border-radius:8px;font-size:13px;display:none;margin:0;">Debug output verschijnt hier</pre>
         </div>
     </div>
 
