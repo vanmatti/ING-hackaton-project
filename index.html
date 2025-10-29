@@ -23,11 +23,10 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
-        /* Het 'logo' - gestyled als de ING huisstijl */
+        /* Het 'logo' - de afbeelding */
         .logo {
-            font-size: 56px;
-            font-weight: bold;
-            color: #004a99; /* ING Blauw */
+            max-height: 70px; /* Bepaalt de maximale hoogte */
+            width: auto;      /* Zorgt dat de verhouding goed blijft */
             margin-bottom: 30px;
         }
 
@@ -62,10 +61,8 @@
 <body>
 
     <div class="container">
-        <div class="logo">
-            <img src="ING_Primary_Logo_RGB.png">
-            ING
-        </div>
+        
+        <img src="ING_Primary_Logo_RGB.png" alt="ING Logo" class="logo">
 
         <button id="recordButton">
             Start met Praten
@@ -73,7 +70,7 @@
 
         <div id="status">Druk op de knop om te beginnen</div>
     </div>
-    <script src="stt.js"></script>
+
 </body>
 </html>
 
