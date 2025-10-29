@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // !!! BELANGRIJK: Plak hier je API-sleutel als je automatische transcriptie wilt
     // NOOIT DEZE SLEUTEL PUBLIEK OP GITHUB ZETTEN!
-    const GOOGLE_API_KEY = 'AIzaSyDJcpbWFHrNLme3IYay9HuLHMxoUSMeoc8';
+    const GOOGLE_API_KEY = 
 
 
     // 3. Koppel de 'click'-functie aan de knop
@@ -315,5 +315,6 @@ document.addEventListener('DOMContentLoaded', () => {
             statusText.textContent = 'Fout bij verbinding met API.';
         }
     }
+
 
 });
