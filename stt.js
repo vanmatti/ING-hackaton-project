@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Stuur opname naar backend voor transcriptie
                         sendToGoogleAPI(base64Audio, languageSelect.value);
                     };
-        
+        }); //
 
                 // Start browser speech recognition (live transcript) if available
                 startBrowserRecognition();
@@ -426,3 +426,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 });
+
