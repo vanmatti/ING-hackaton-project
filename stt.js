@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let mediaRecorder;
     let audioChunks = [];
     
-  // !!! BELANGRIJK: Dit is de veilige URL naar jouw eigen backend (Cloud Function)
-const BACKEND_URL = https://backend-171838792637.europe-west1.run.app
+    // !!! BELANGRIJK: Dit is de veilige URL naar jouw eigen backend (Cloud Function)
+    const BACKEND_URL = 'https://backend-171838792637.europe-west1.run.app';
 
 
     // 3. Koppel de 'click'-functie aan de knop
@@ -62,12 +62,8 @@ const BACKEND_URL = https://backend-171838792637.europe-west1.run.app
                     reader.onloadend = () => {
                         const base64Audio = reader.result.split(',')[1];
 
-                        // Als er een API-sleutel is, stuur naar Google Speech API
-                        if (GOOGLE_API_KEY && GOOGLE_API_KEY !== 'JOUW_API_SLEUTEL_HIER') {
-                            sendToGoogleAPI(base64Audio, languageSelect.value);
-                        } else {
-                            statusText.textContent = 'Opname klaar (geen API-sleutel ingesteld)';
-                        }
+                        // Stuur opname naar backend voor transcriptie
+                        sendToGoogleAPI(base64Audio, languageSelect.value);
                     };
                 });
 
@@ -80,8 +76,8 @@ const BACKEND_URL = https://backend-171838792637.europe-west1.run.app
                 // Update de interface
                 isRecording = true;
                 statusText.textContent = 'Aan het luisteren...';
-                recordButton.textContent = 'Stop Opname';
-                recordButton.style.backgroundColor = '#cc0000';
+                recordButton.classList.add('recording');
+                recordButton.setAttribute('aria-pressed', 'true');
 
                 // Ensure custom select width matches button width
                 syncControlWidths();
@@ -101,19 +97,17 @@ const BACKEND_URL = https://backend-171838792637.europe-west1.run.app
             // Update de interface
             isRecording = false;
             statusText.textContent = 'Opname verwerken...';
-            recordButton.textContent = 'Start met Praten';
-            recordButton.style.backgroundColor = '#ff6200';
+            recordButton.classList.remove('recording');
+            recordButton.setAttribute('aria-pressed', 'false');
         }
     });
 
     // --- Sync widths so button and custom select match and button adapts to text ---
     function syncControlWidths() {
-        // Let the button size to its content, then copy its width to the custom select
-        const btnWidth = recordButton.getBoundingClientRect().width;
-        // Add a tiny padding allowance for the custom select arrow
-        customSelect.style.width = Math.ceil(btnWidth) + 'px';
-        // Also ensure the button is nicely centered if needed (no fixed width)
-        recordButton.style.width = 'auto';
+        // No width sync needed anymore — keep the mic button circular and the language
+        // selector compact under the transcript. This function left as a noop for
+        // backwards compatibility with previous calls.
+        return;
     }
 
     // Run on load and resize
@@ -271,50 +265,163 @@ const BACKEND_URL = https://backend-171838792637.europe-west1.run.app
             }
         });
 
-    // 4. Functie: API-aanroep (NU NAAR ONZE EIGEN VEILIGE BACKEND)
-async function sendToGoogleAPI(base64Audio, languageCode) {
+    // 4. Functie: API-aanroep naar onze backend (Cloud Function)
+    async function sendToGoogleAPI(base64Audio, languageCode) {
+        const API_URL = BACKEND_URL;
 
-    // We sturen de data nu naar onze EIGEN backend, niet meer direct naar Google
-    const API_URL = BACKEND_URL; 
-
-    // We sturen de audio en de taal als JSON
-    const requestBody = {
-        audioData: base64Audio,
-        lang: languageCode || 'nl-NL'
-    };
-
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            const text = await response.text();
-            console.error('Backend response error', response.status, text);
-            statusText.textContent = 'Fout bij transcriptie (Backend).';
+        // Quick guard: remind developer to set the real backend URL instead of the placeholder
+        if (!API_URL || API_URL.includes('jouw-cloud-function')) {
+            console.warn('BACKEND_URL is niet ingesteld (placeholder gebruikt). Vervang BACKEND_URL in stt.js met je echte endpoint.');
+            statusText.textContent = 'Fout: Backend-URL niet ingesteld. Vul BACKEND_URL in stt.js in.';
             return;
         }
 
-        const data = await response.json();
+        const requestBody = {
+            audioData: base64Audio,
+            lang: languageCode || 'nl-NL'
+        };
 
-        // Onze backend stuurt een simpel { transcript: "..." } object terug
-        if (data.transcript) {
-            statusText.textContent = `Jij zei: "${data.transcript}"`;
-        } else {
-            statusText.textContent = 'Kon je niet verstaan. Probeer opnieuw.';
-            console.log('Geen transcriptie gevonden in backend-antwoord:', data);
+        // Use an AbortController to avoid hanging forever
+        const controller = new AbortController();
+        const timeout = 25000; // 25s
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        try {
+            console.log('Verstuur opname naar backend:', API_URL, 'lang=', requestBody.lang);
+            statusText.textContent = 'Versturen naar backend...';
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                // Try to read JSON or text for helpful debug info
+                let bodyText = '';
+                try {
+                    bodyText = await response.text();
+                } catch (e) {
+                    bodyText = '<kon response body niet lezen>';
+                }
+                console.error('Backend response error', response.status, bodyText);
+                statusText.textContent = `Backend fout: ${response.status}. Controleer CORS en logs.`;
+                return;
+            }
+
+            // Attempt to parse JSON; if that fails, show the raw text
+            let data;
+            try {
+                data = await response.json();
+            } catch (e) {
+                const raw = await response.text();
+                console.warn('Backend returned non-JSON response:', raw);
+                statusText.textContent = 'Backend retourneerde geen JSON. Bekijk console.';
+                console.log('Raw backend response:', raw);
+                return;
+            }
+
+            // Verwacht { transcript: '...' }
+            if (data && data.transcript) {
+                statusText.textContent = `Jij zei: "${data.transcript}"`;
+            } else {
+                statusText.textContent = 'Kon je niet verstaan. Probeer opnieuw.';
+                console.log('Geen transcriptie gevonden in backend-antwoord:', data);
+            }
+
+        } catch (error) {
+            clearTimeout(timeoutId);
+            console.error('Fout bij het aanroepen van de Backend:', error);
+
+            // Differentiate abort (timeout) vs network errors
+            if (error.name === 'AbortError') {
+                statusText.textContent = 'Timeout: backend reageert niet (controleer URL/CORS).';
+            } else if (!navigator.onLine) {
+                statusText.textContent = 'Geen internetverbinding.';
+            } else {
+                statusText.textContent = 'Fout bij verbinding met backend. Bekijk console voor details.';
+            }
+
+            // Common causes to check
+            console.info('Controleer: 1) BACKEND_URL correct en bereikbaar 2) CORS toestaat deze origin 3) HTTPS of localhost tijdens testen');
+        }
+    }
+
+    // --- Debug helper: test backend connectivity and show full response ---
+    const testBtn = document.getElementById('testBackendBtn');
+    const backendDebug = document.getElementById('backendDebug');
+
+    async function testBackend() {
+        const API_URL = BACKEND_URL;
+        backendDebug.style.display = 'block';
+        backendDebug.textContent = '';
+
+        if (!API_URL || API_URL.includes('jouw-cloud-function')) {
+            backendDebug.textContent = 'BACKEND_URL is niet ingesteld in stt.js. Zet je endpoint in de variabele BACKEND_URL.';
+            statusText.textContent = 'Fout: Backend-URL niet ingesteld.';
+            return;
         }
 
-    } catch (error) {
-        console.error('Fout bij het aanroepen van de Backend:', error);
-        statusText.textContent = 'Fout bij verbinding met backend.';
-    }
-}
+        const payload = { ping: true };
+        statusText.textContent = 'Ping naar backend...';
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        try {
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            backendDebug.textContent += `HTTP ${res.status} ${res.statusText}\n`;
+            backendDebug.textContent += `URL: ${API_URL}\n\n`;
+
+            // Show response headers (subset)
+            try {
+                const allowOrigin = res.headers.get('access-control-allow-origin');
+                backendDebug.textContent += `Access-Control-Allow-Origin: ${allowOrigin}\n`;
+            } catch (e) {
+                // ignore header read errors
+            }
+
+            let bodyText;
+            try {
+                bodyText = await res.text();
+            } catch (e) {
+                bodyText = '<kon body niet lezen>';
+            }
+
+            // Try to pretty-print JSON if possible
+            try {
+                const parsed = JSON.parse(bodyText);
+                backendDebug.textContent += '\nJSON body:\n' + JSON.stringify(parsed, null, 2) + '\n';
+            } catch (e) {
+                backendDebug.textContent += '\nBody:\n' + bodyText + '\n';
+            }
+
+            statusText.textContent = res.ok ? 'Backend reageert (bekijk debug-paneel).' : `Backend fout: ${res.status}`;
+
+        } catch (err) {
+            clearTimeout(timeoutId);
+            console.error('Test backend fetch error:', err);
+            if (err.name === 'AbortError') {
+                backendDebug.textContent += 'Timeout: backend reageert niet binnen 15s.\n';
+                statusText.textContent = 'Timeout bij backend-ping.';
+            } else {
+                backendDebug.textContent += 'Fetch error: ' + (err.message || String(err)) + '\n';
+                backendDebug.textContent += 'Mogelijke oorzaken: CORS (zie console), onjuist URL, HTTP->HTTPS mismatch of netwerkproblemen.\n';
+                statusText.textContent = 'Fout bij verbinding met backend. Controleer console.';
+            }
+        }
+    }
+
+    if (testBtn) testBtn.addEventListener('click', testBackend);
 
 });
-
-
-

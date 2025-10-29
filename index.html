@@ -28,11 +28,29 @@
             align-items: center;   /* Centreer alles horizontaal */
         }
 
+        .logo-container {
+            position: relative;
+            padding-bottom: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
         .logo {
             max-height: 70px;
             width: auto;
-            margin-bottom: 30px;
         }
+
+        .logo-container::after {
+            content: '';
+            position: absolute;
+            /* move divider a bit up and make it thicker/bolder */
+            bottom: 22px;
+            left: -30px;
+            right: -30px;
+            height: 3px;
+            background: rgba(0,0,0,0.95);
+        }
+
         :root{
             --control-width: min(320px, 80%);
         }
@@ -48,23 +66,8 @@
             flex-direction: column;
         }
 
-        /* Make the language selector look like a rounded pill button */
-        #languageSelect {
-            appearance: none;
-            -webkit-appearance: none;
-            background-color: #ff6200;
-            color: #fff;
-            border: none;
-            padding: 12px 18px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 50px;
-            width: var(--control-width);
-            text-align: center;
-            text-align-last: center; /* try to center selected option in some browsers */
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-        }
+        /* Native select is kept for accessibility but hidden visually; the custom-select is used instead */
+        #languageSelect { display: none !important; }
 
         /* Hidden audio element */
         audio {
@@ -90,22 +93,23 @@
 
         /* Custom select visuals */
         .custom-select {
-            background: #ff6200;
-            color: #fff;
-            border-radius: 50px;
-            padding: 14px 32px;
-            font-size: 24px;
-            font-weight: bold;
-            min-width: 240px;
+            background: #f0f2f5;
+            color: #333;
+            border-radius: 25px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 140px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(16,24,40,0.06);
             position: relative;
             user-select: none;
             transition: all 180ms ease;
+            margin-top: 20px;
         }
 
         .custom-select:focus,
@@ -164,20 +168,86 @@
             background-color: #ff6200;
             color: white;
             border: none;
-            padding: 14px 32px;
-            font-size: 24px;
-            font-weight: bold;
-            border-radius: 50px;
-            min-width: 240px;
-            display: inline-flex;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
             transition: all 180ms ease;
+            padding: 0;
+            box-shadow: 0 6px 18px rgba(255, 98, 0, 0.18);
+            position: relative;
+            overflow: visible;
         }
 
         #recordButton:hover {
             background-color: #e65a00;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 98, 0, 0.28);
+        }
+
+        /* Pulse rings: use dark blue and make the main circle scale as well */
+        /* Dark blue: rgb(10, 45, 120) approx */
+        #recordButton::before,
+        #recordButton::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(10,45,120,0.16); /* subtle dark blue */
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        #recordButton::before {
+            transform-origin: center;
+        }
+
+        #recordButton.recording {
+            /* Dark blue gradient when recording */
+            background: linear-gradient(180deg,#0a2d78,#06214f);
+            box-shadow: 0 12px 30px rgba(10,45,120,0.18);
+            color: white;
+            animation: scalePulse 1400ms infinite ease-out;
+        }
+
+        #recordButton.recording::before {
+            animation: ripple 1400ms infinite ease-out;
+            opacity: 1;
+        }
+
+        #recordButton.recording::after {
+            animation: ripple 1400ms infinite ease-out 700ms;
+            opacity: 1;
+        }
+
+        @keyframes scalePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes ripple {
+            0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.9; }
+            70% { transform: translate(-50%, -50%) scale(1.9); opacity: 0.12; }
+            100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+        }
+
+        #recordButton.recording {
+            background-color: #cc0000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         
         #status {
@@ -193,19 +263,28 @@
 
     <div class="container">
         
-        <img src="ING_Primary_Logo_RGB.png" alt="ING Logo" class="logo">
-        <div class="controls">
-            <div style="display:flex;flex-direction:column;align-items:center;">
-                <label style="visibility:hidden; height:0;">&nbsp;</label>
-                <button id="recordButton">
-                    Start met Praten
-                </button>
-            </div>
-            <div style="height:12px"></div>
-            
-            <div style="display:flex;flex-direction:column;align-items:center;">
-                <label for="languageSelect" style="margin-bottom:6px; font-weight:700; color:#333;">Kies taal</label>
+        <div class="logo-container">
+            <img src="ING_Primary_Logo_RGB.png" alt="ING Logo" class="logo">
+        </div>
 
+        <div class="controls">
+            <button id="recordButton" aria-pressed="false" title="Start/Stop opname" aria-label="Start of stop opname">
+                <!-- No icon per request: empty centered circular button -->
+                <span class="mic-empty" aria-hidden="true"></span>
+            </button>
+        </div>
+        
+
+        <!-- Hidden audio element for background playback -->
+        <audio id="audio" style="display:none"></audio>
+
+        <!-- Transcriptie vak: hier verschijnt de live-tekst -->
+        <div style="display:flex;flex-direction:column;align-items:center; width:100%;">
+            <label for="transcript" style="margin-top:14px; font-weight:700; color:#333;">Transcriptie</label>
+            <textarea id="transcript" readonly></textarea>
+
+            <!-- Language selector moved below transcript -->
+            <div style="display:flex;flex-direction:column;align-items:center;">
                 <!-- Hidden native select (kept for accessibility and JS hooks) -->
                 <select id="languageSelect" aria-hidden="true" style="display:none;">
                     <option value="nl-NL">Nederlands</option>
@@ -226,16 +305,13 @@
             </div>
         </div>
 
-        <!-- Hidden audio element for background playback -->
-        <audio id="audio" style="display:none"></audio>
-
-        <!-- Transcriptie vak: hier verschijnt de live-tekst -->
-        <div style="display:flex;flex-direction:column;align-items:center; width:100%;">
-            <label for="transcript" style="margin-top:14px; font-weight:700; color:#333;">Transcriptie</label>
-            <textarea id="transcript" readonly></textarea>
-        </div>
-
         <div id="status">Druk op de knop om te beginnen</div>
+
+        <!-- Backend test button + debug pane -->
+        <div style="display:flex;flex-direction:column;align-items:center;margin-top:12px;gap:8px;width:100%;max-width:520px;">
+            <button id="testBackendBtn" style="padding:8px 14px;border-radius:10px;border:1px solid #e6e6e6;background:#fff;cursor:pointer;font-weight:700;">Test backend verbinding</button>
+            <pre id="backendDebug" style="width:100%;height:120px;overflow:auto;padding:10px;background:#0f172a;color:#e6eefb;border-radius:8px;font-size:13px;display:none;margin:0;">Debug output verschijnt hier</pre>
+        </div>
     </div>
 
     <script src="stt.js"></script>
