@@ -1,11 +1,18 @@
+<!-- 
+    ING VOICE ASSISTANT WIDGET - INLINE VERSION
+    Copy this entire block and paste it before </body> in your HTML file
+-->
 
 <style>
 /* Voice Assistant Widget Styles */
 .voice-assistant-widget {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    bottom: 20px;
+    right: 20px;
     z-index: 999999;
+    /* Ensure it stays visible and doesn't go off-screen */
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 40px);
 }
 
 .voice-button {
@@ -172,8 +179,8 @@
 
 @media (max-width: 768px) {
     .voice-assistant-widget {
-        bottom: 20px;
-        right: 20px;
+        bottom: 15px;
+        right: 15px;
     }
     .voice-button {
         width: 50px;
@@ -182,6 +189,22 @@
     .voice-button.active {
         width: 70px;
         height: 70px;
+    }
+}
+
+/* Ensure button stays within viewport on all screen sizes */
+@media (max-width: 480px) {
+    .voice-assistant-widget {
+        bottom: 10px;
+        right: 10px;
+    }
+    .voice-button {
+        width: 45px;
+        height: 45px;
+    }
+    .voice-button.active {
+        width: 65px;
+        height: 65px;
     }
 }
 </style>
