@@ -1,0 +1,347 @@
+
+<style>
+/* Voice Assistant Widget Styles */
+.voice-assistant-widget {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 999999;
+}
+
+.voice-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF6200 0%, #FFA04D 100%);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255, 98, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: visible;
+}
+
+.voice-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px rgba(255, 98, 0, 0.6);
+}
+
+.voice-button:active {
+    transform: scale(0.95);
+}
+
+.mic-icon {
+    width: 24px;
+    height: 24px;
+    fill: white;
+    transition: all 0.3s ease;
+}
+
+.voice-button.active {
+    width: 80px;
+    height: 80px;
+    animation: pulse 2s infinite;
+}
+
+.voice-button.active .mic-icon {
+    width: 32px;
+    height: 32px;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(255, 98, 0, 0.4),
+                   0 0 0 0 rgba(255, 98, 0, 0.7);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(255, 98, 0, 0.6),
+                   0 0 0 20px rgba(255, 98, 0, 0);
+    }
+}
+
+.sound-wave {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    gap: 3px;
+}
+
+.voice-button.active .sound-wave {
+    display: flex;
+}
+
+.wave-bar {
+    width: 3px;
+    height: 12px;
+    background: white;
+    border-radius: 2px;
+    animation: wave 1s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(1) { animation-delay: 0s; }
+.wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { animation-delay: 0.3s; }
+.wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes wave {
+    0%, 100% { height: 12px; }
+    50% { height: 24px; }
+}
+
+.voice-tooltip {
+    position: absolute;
+    bottom: 75px;
+    right: 0;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.voice-button:hover .voice-tooltip {
+    opacity: 1;
+}
+
+.voice-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    right: 20px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid rgba(0, 0, 0, 0.85);
+}
+
+.voice-button.processing {
+    animation: rotate 1.5s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.transcript-popup {
+    position: absolute;
+    bottom: 90px;
+    right: 0;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    max-width: 300px;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.transcript-popup.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.transcript-popup h4 {
+    color: #FF6200;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.transcript-popup p {
+    color: #333;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .voice-assistant-widget {
+        bottom: 20px;
+        right: 20px;
+    }
+    .voice-button {
+        width: 50px;
+        height: 50px;
+    }
+    .voice-button.active {
+        width: 70px;
+        height: 70px;
+    }
+}
+</style>
+
+<!-- Voice Assistant Widget HTML -->
+<div class="voice-assistant-widget">
+    <button class="voice-button" id="voiceButton" aria-label="Voice Assistant">
+        <svg class="mic-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+        <div class="sound-wave">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+        </div>
+        <div class="voice-tooltip">Click to start voice assistant</div>
+    </button>
+    <div class="transcript-popup" id="transcriptPopup">
+        <h4>You said:</h4>
+        <p id="transcriptText">Listening...</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ⚙️ CONFIGURATION - UPDATE YOUR BACKEND URL HERE
+    const CONFIG = {
+        backendUrl: 'http://localhost:8000',     // ← CHANGE THIS
+        websocketUrl: 'ws://localhost:8000/ws'   // ← CHANGE THIS
+    };
+
+    class VoiceAssistant {
+        constructor() {
+            this.isActive = false;
+            this.isProcessing = false;
+            this.mediaRecorder = null;
+            this.audioChunks = [];
+            this.websocket = null;
+            
+            this.button = document.getElementById('voiceButton');
+            this.tooltip = document.querySelector('.voice-tooltip');
+            this.transcriptPopup = document.getElementById('transcriptPopup');
+            this.transcriptText = document.getElementById('transcriptText');
+            
+            this.init();
+        }
+
+        init() {
+            this.button.addEventListener('click', () => this.toggleVoice());
+        }
+
+        async toggleVoice() {
+            if (this.isActive) {
+                this.stopVoice();
+            } else {
+                await this.startVoice();
+            }
+        }
+
+        async startVoice() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                this.isActive = true;
+                this.button.classList.add('active');
+                this.tooltip.textContent = 'Click to stop';
+                this.transcriptPopup.classList.add('show');
+                
+                this.mediaRecorder = new MediaRecorder(stream);
+                this.audioChunks = [];
+                
+                this.mediaRecorder.ondataavailable = (event) => {
+                    this.audioChunks.push(event.data);
+                };
+                
+                this.mediaRecorder.onstop = async () => {
+                    await this.processAudio();
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                this.mediaRecorder.start();
+                this.simulateListening();
+                
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                alert('Please grant microphone permissions to use the voice assistant.');
+            }
+        }
+
+        stopVoice() {
+            if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                this.mediaRecorder.stop();
+            }
+            
+            this.isActive = false;
+            this.button.classList.remove('active');
+            this.button.classList.add('processing');
+            this.tooltip.textContent = 'Processing...';
+        }
+
+        async processAudio() {
+            try {
+                const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                
+                const formData = new FormData();
+                formData.append('audio', audioBlob);
+                
+                const response = await fetch(`${CONFIG.backendUrl}/api/process-voice`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                this.displayResponse(result);
+                
+            } catch (error) {
+                console.error('Error processing audio:', error);
+                this.transcriptText.textContent = 'Error: ' + error.message;
+            } finally {
+                this.button.classList.remove('processing');
+                this.transcriptPopup.classList.remove('show');
+                this.tooltip.textContent = 'Click to start voice assistant';
+            }
+        }
+
+        displayResponse(result) {
+            console.log('Transcript:', result.transcript);
+            console.log('Response:', result.response);
+            
+            if (result.audioUrl) {
+                const audio = new Audio(result.audioUrl);
+                audio.play();
+            }
+        }
+
+        simulateListening() {
+            const phrases = ['Listening...', 'I can hear you...', 'Keep speaking...'];
+            let index = 0;
+            
+            const interval = setInterval(() => {
+                if (!this.isActive) {
+                    clearInterval(interval);
+                    return;
+                }
+                this.transcriptText.textContent = phrases[index % phrases.length];
+                index++;
+            }, 1500);
+        }
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            new VoiceAssistant();
+        });
+    } else {
+        new VoiceAssistant();
+    }
+})();
+</script>
