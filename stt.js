@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // !!! BELANGRIJK: Dit is de veilige URL naar jouw eigen backend (Cloud Function)
     // *** REPARATIE 1: Aanhalingstekens toegevoegd ***
-    const BACKEND_URL = 'https://backend-171838792637.europe-west1.run.app';
+    const BACKEND_URL = "https://ai-assistent-backend-171838792637.europe-west1.run.app/";
 
 
     // 3. Koppel de 'click'-functie aan de knop
@@ -405,3 +405,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 });
+
