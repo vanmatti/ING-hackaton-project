@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Ensure custom select width matches button width
                 syncControlWidths();
 
-           catch(error => {
+           .catch(error => {
                 console.error('Fout bij ophalen microfoon:', err);
                 statusText.textContent = 'Fout: Microfoon niet toegestaan.';
             }
@@ -426,6 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 });
+
 
 
 
