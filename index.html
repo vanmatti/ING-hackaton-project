@@ -33,17 +33,147 @@
             width: auto;
             margin-bottom: 30px;
         }
+        :root{
+            --control-width: min(320px, 80%);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            /* Stack vertically so the selector appears under the button */
+            flex-direction: column;
+        }
+
+        /* Make the language selector look like a rounded pill button */
+        #languageSelect {
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #ff6200;
+            color: #fff;
+            border: none;
+            padding: 12px 18px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 50px;
+            width: var(--control-width);
+            text-align: center;
+            text-align-last: center; /* try to center selected option in some browsers */
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        }
+
+        /* Hidden audio element */
+        audio {
+            display: none;
+        }
+
+        /* Transcript box styling */
+        #transcript {
+            width: 100%;
+            max-width: 520px;
+            height: 140px;
+            margin-top: 8px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #e6e6e6;
+            box-shadow: 0 6px 18px rgba(16,24,40,0.04);
+            resize: vertical;
+            font-size: 15px;
+            line-height: 1.4;
+            color: #111827;
+            background: linear-gradient(180deg,#fff,#fbfbfb);
+        }
+
+        /* Custom select visuals */
+        .custom-select {
+            background: #ff6200;
+            color: #fff;
+            border-radius: 50px;
+            padding: 14px 32px;
+            font-size: 24px;
+            font-weight: bold;
+            min-width: 240px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+            position: relative;
+            user-select: none;
+            transition: all 180ms ease;
+        }
+
+        .custom-select:focus,
+        .custom-select:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(16,24,40,0.08);
+            outline: none;
+        }
+
+        .custom-select__label { text-align:center; }
+        .custom-select__arrow { opacity:0.9 }
+
+        .custom-select__list {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(-6px);
+            background: white;
+            color: #111827;
+            min-width: 160px;
+            width: max-content;
+            padding: 8px 6px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+            list-style: none;
+            margin: 0;
+            opacity: 0;
+            pointer-events: none;
+            transform-origin: top center;
+            transition: opacity 160ms ease, transform 160ms ease;
+            max-height: 0;
+            overflow: hidden;
+            z-index: 40;
+        }
+
+        .custom-select.open .custom-select__list {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+            max-height: 240px;
+        }
+
+        .custom-select__list li {
+            padding: 8px 14px;
+            border-radius: 8px;
+            margin: 4px 6px;
+            cursor: pointer;
+            transition: background 120ms ease, transform 120ms ease;
+        }
+
+        .custom-select__list li:hover { background: #f3f4f6; transform: translateX(4px); }
+
+        .custom-select__list li.active { font-weight:700; background:#f9fafb }
 
         #recordButton {
             background-color: #ff6200;
             color: white;
             border: none;
-            padding: 20px 40px;
+            padding: 14px 32px;
             font-size: 24px;
             font-weight: bold;
             border-radius: 50px;
+            min-width: 240px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 180ms ease;
         }
 
         #recordButton:hover {
@@ -64,22 +194,53 @@
     <div class="container">
         
         <img src="ING_Primary_Logo_RGB.png" alt="ING Logo" class="logo">
+        <div class="controls">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+                <label style="visibility:hidden; height:0;">&nbsp;</label>
+                <button id="recordButton">
+                    Start met Praten
+                </button>
+            </div>
+            <div style="height:12px"></div>
+            
+            <div style="display:flex;flex-direction:column;align-items:center;">
+                <label for="languageSelect" style="margin-bottom:6px; font-weight:700; color:#333;">Kies taal</label>
 
-        <button id="recordButton">
-            Start met Praten
-        </button>
+                <!-- Hidden native select (kept for accessibility and JS hooks) -->
+                <select id="languageSelect" aria-hidden="true" style="display:none;">
+                    <option value="nl-NL">Nederlands</option>
+                    <option value="en-US">English</option>
+                    <option value="fr-FR">Français</option>
+                </select>
+
+                <!-- Custom animated dropdown to replace native select visually -->
+                <div class="custom-select" id="customSelect" tabindex="0" role="listbox" aria-haspopup="true" aria-expanded="false">
+                    <div class="custom-select__label" id="customSelectLabel">Nederlands</div>
+                    <div class="custom-select__arrow">▾</div>
+                    <ul class="custom-select__list" id="customSelectList" role="presentation">
+                        <li role="option" data-value="nl-NL" class="active">Nederlands</li>
+                        <li role="option" data-value="en-US">English</li>
+                        <li role="option" data-value="fr-FR">Français</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden audio element for background playback -->
+        <audio id="audio" style="display:none"></audio>
+
+        <!-- Transcriptie vak: hier verschijnt de live-tekst -->
+        <div style="display:flex;flex-direction:column;align-items:center; width:100%;">
+            <label for="transcript" style="margin-top:14px; font-weight:700; color:#333;">Transcriptie</label>
+            <textarea id="transcript" readonly></textarea>
+        </div>
 
         <div id="status">Druk op de knop om te beginnen</div>
     </div>
 
+    <script src="sst.js"></script>
 </body>
 </html>
-    </div>
-     <script src="stt.js"></script>
-</body>
-</html>
-
-
 
 
 
