@@ -26,6 +26,9 @@
             display: flex;
             flex-direction: column; /* Stapel alles verticaal */
             align-items: center;   /* Centreer alles horizontaal */
+            /* Fixed width so layout doesn't change */
+            width: 640px;
+            box-sizing: border-box;
         }
 
         .logo-container {
@@ -52,7 +55,7 @@
         }
 
         :root{
-            --control-width: min(320px, 80%);
+            --control-width: 320px;
         }
 
         .controls {
@@ -76,19 +79,20 @@
 
         /* Transcript box styling */
         #transcript {
-            width: 100%;
-            max-width: 520px;
+            width: 520px;
             height: 140px;
             margin-top: 8px;
             padding: 14px;
             border-radius: 12px;
             border: 1px solid #e6e6e6;
             box-shadow: 0 6px 18px rgba(16,24,40,0.04);
-            resize: vertical;
+            resize: none; /* prevent resizing */
+            overflow: auto;
             font-size: 15px;
             line-height: 1.4;
             color: #111827;
             background: linear-gradient(180deg,#fff,#fbfbfb);
+            box-sizing: border-box;
         }
 
         /* Custom select visuals */
@@ -99,7 +103,7 @@
             padding: 8px 16px;
             font-size: 14px;
             font-weight: 600;
-            min-width: 140px;
+            width: 160px; /* fixed width */
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -110,6 +114,7 @@
             user-select: none;
             transition: all 180ms ease;
             margin-top: 20px;
+            box-sizing: border-box;
         }
 
         .custom-select:focus,
@@ -130,7 +135,7 @@
             background: white;
             color: #111827;
             min-width: 160px;
-            width: max-content;
+            width: 160px;
             padding: 8px 6px;
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(2,6,23,0.08);
@@ -278,8 +283,8 @@
         <!-- Hidden audio element for background playback -->
         <audio id="audio" style="display:none"></audio>
 
-        <!-- Transcriptie vak: hier verschijnt de live-tekst -->
-        <div style="display:flex;flex-direction:column;align-items:center; width:100%;">
+    <!-- Transcriptie vak: hier verschijnt de live-tekst -->
+    <div style="display:flex;flex-direction:column;align-items:center; width:520px;">
             <label for="transcript" style="margin-top:14px; font-weight:700; color:#333;">Transcriptie</label>
             <textarea id="transcript" readonly></textarea>
 
@@ -308,9 +313,9 @@
         <div id="status">Druk op de knop om te beginnen</div>
 
         <!-- Backend test button + debug pane -->
-        <div style="display:flex;flex-direction:column;align-items:center;margin-top:12px;gap:8px;width:100%;max-width:520px;">
+        <div style="display:flex;flex-direction:column;align-items:center;margin-top:12px;gap:8px;width:520px;">
             <button id="testBackendBtn" style="padding:8px 14px;border-radius:10px;border:1px solid #e6e6e6;background:#fff;cursor:pointer;font-weight:700;">Test backend verbinding</button>
-            <pre id="backendDebug" style="width:100%;height:120px;overflow:auto;padding:10px;background:#0f172a;color:#e6eefb;border-radius:8px;font-size:13px;display:none;margin:0;">Debug output verschijnt hier</pre>
+            <pre id="backendDebug" style="width:520px;height:120px;overflow:auto;padding:10px;background:#0f172a;color:#e6eefb;border-radius:8px;font-size:13px;display:none;margin:0;">Debug output verschijnt hier</pre>
         </div>
     </div>
 
