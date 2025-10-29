@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simple Website</title>
+  <style>
+    :root{
+      --accent:#0b79d0;
+      --bg:#f7fbff;
+      --muted:#6b7280;
+      --card:#ffffff;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:#0b1320;line-height:1.5}
+    .container{max-width:1000px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+    .logo{display:flex;gap:10px;align-items:center;font-weight:700}
+    nav{display:flex;gap:16px;align-items:center}
+    a{color:inherit;text-decoration:none}
+    .btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px}
+    .hero{display:grid;grid-template-columns:1fr;gap:18px;align-items:center;margin:28px 0}
+    .hero h1{font-size:clamp(1.6rem,3.5vw,2.4rem);margin:0}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(11,23,40,0.06)}
+    .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
+    footer{color:var(--muted);padding:18px 0;text-align:center;font-size:0.9rem}
+    form{display:grid;gap:8px}
+    input,textarea{width:100%;padding:10px;border:1px solid #e6edf3;border-radius:8px;background:#fff}
+    .meta{color:var(--muted);font-size:0.95rem}
+    /* responsive nav */
+    .mobile-toggle{display:none;border:0;background:transparent;font-size:18px}
+    @media (max-width:720px){
+      nav{display:none;position:absolute;right:16px;top:64px;background:var(--card);padding:12px;border-radius:8px;box-shadow:0 6px 18px rgba(11,23,40,0.08)}
+      nav.open{display:flex;flex-direction:column}
+      .mobile-toggle{display:inline-block}
+      .hero{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <rect width="24" height="24" rx="6" fill="#0b79d0"></rect>
+        </svg>
+        <div>
+          SimpleSite
+          <div class="meta" style="font-weight:400;font-size:0.85rem">A minimal starter page</div>
+        </div>
+      </div>
+
+      <button class="mobile-toggle" aria-expanded="false" aria-controls="main-nav" id="toggleBtn">☰</button>
+
+      <nav id="main-nav" role="navigation" aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#about">About</a>
+        <a href="#contact" class="btn">Contact</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero card" aria-labelledby="hero-title">
+        <div>
+          <h1 id="hero-title">Build fast. Ship faster.</h1>
+          <p class="meta">A clean, responsive starting template for small projects and demos.</p>
+          <p style="margin-top:12px">
+            <a class="btn" href="#contact">Get in touch</a>
+            <a style="margin-left:8px;color:var(--accent)" href="#features">See features →</a>
+          </p>
+        </div>
+      </section>
+
+      <section id="features" style="margin-top:18px">
+        <h2 style="margin:0 0 8px 0">Features</h2>
+        <div class="features">
+          <div class="card">
+            <h3 style="margin-top:0">Responsive</h3>
+            <p class="meta">Works on phones, tablets and desktop out of the box.</p>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0">Accessible</h3>
+            <p class="meta">Semantic HTML and simple keyboard-friendly navigation.</p>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0">Lightweight</h3>
+            <p class="meta">No dependencies — plain HTML, CSS and a tiny bit of JS.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" style="margin-top:18px">
+        <h2 style="margin:0 0 8px 0">About</h2>
+        <div class="card">
+          <p class="meta">This template is intended as a starting point for demos, hackathons, or small projects. Customize the styles and content as needed.</p>
+        </div>
+      </section>
+
+      <section id="contact" style="margin-top:18px">
+        <h2 style="margin:0 0 8px 0">Contact</h2>
+        <div class="card">
+          <form onsubmit="event.preventDefault(); alert('Form submitted (demo)');">
+            <label>
+              Name
+              <input type="text" name="name" placeholder="Your name" required>
+            </label>
+            <label>
+              Email
+              <input type="email" name="email" placeholder="you@example.com" required>
+            </label>
+            <label>
+              Message
+              <textarea name="message" rows="4" placeholder="Say hi..." required></textarea>
+            </label>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <button class="btn" type="submit">Send</button>
+              <button type="reset" style="background:#eef3fb;border:0;padding:8px 12px;border-radius:8px">Reset</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="meta">© <span id="year"></span> SimpleSite — Built for demos</div>
+    </footer>
+  </div>
+
+  <script>
+    // small scripts for interactivity
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const toggle = document.getElementById('toggleBtn');
+    const nav = document.getElementById('main-nav');
+    toggle.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+  </script>
+</body>
+</html>
